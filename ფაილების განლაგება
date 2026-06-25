@@ -1,0 +1,9 @@
+Java_Saba_Chokoshvili/                  (მთავარი პროექტი)
+├── src/
+│   └── main/
+│       ├── java/                         (<- ყველა კოდი იწერება მხოლოდ აქ!)
+│       │   ├── DatabaseManager.java
+│       │   ├── MainApp.java
+│       │   └── Product.java
+│       └── resources/                    (ამას არ შეეხო, ცარიელია)
+└── pom.xml                               (<- კონფიგურაციის ფაილი ძირშია)
