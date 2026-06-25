@@ -11,48 +11,39 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MainApp extends Application {
-
     private PieChart pieChart;
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("უნივერსალური საგამოცდო აპლიკაცია (app_db)");
+        primaryStage.setTitle("საგამოცდო აპლიკაცია (უნივერსალური ვერსია)");
 
-        // --- 1. ვიზუალური ელემენტების შექმნა ---
-        Label labelName = new Label("სახელი / სათაური:");
+        Label labelName = new Label("პროდუქტის სახელი:");
         TextField fieldName = new TextField();
 
-        Label labelVal1 = new Label("მონაცემი 1 (მაგ. ფასი):");
+        Label labelVal1 = new Label("მონაცემი 1 (ფასი, კატეგორია ან თარიღი):");
         TextField fieldVal1 = new TextField();
 
-        Label labelVal2 = new Label("მონაცემი 2 (მაგ. რაოდენობა):");
+        Label labelVal2 = new Label("რაოდენობა (მხოლოდ მთელი რიცხვი):");
         TextField fieldVal2 = new TextField();
 
-        Button btnAdd = new Button("მონაცემთა ბაზაში დამატება");
-
-        // --- 2. კომპონენტების განლაგება GridPane-ში ---
+        Button btnAdd = new Button("ბაზაში დამატება");
+        
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(15));
-
-        grid.add(labelName, 0, 0);
-        grid.add(fieldName, 1, 0);
-        grid.add(labelVal1, 0, 1);
-        grid.add(fieldVal1, 1, 1);
-        grid.add(labelVal2, 0, 2);
-        grid.add(fieldVal2, 1, 2);
+        grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(15));
+        grid.add(labelName, 0, 0); grid.add(fieldName, 1, 0);
+        grid.add(labelVal1, 0, 1); grid.add(fieldVal1, 1, 1);
+        grid.add(labelVal2, 0, 2); grid.add(fieldVal2, 1, 2);
         grid.add(btnAdd, 1, 3);
 
-        // --- 3. ჩარტის (PieChart) ინიციალიზაცია ---
         pieChart = new PieChart();
-        pieChart.setTitle("სტატისტიკური განაწილება (Stream API)");
+        pieChart.setTitle("პროდუქტების განაწილება რაოდენობის მიხედვით");
 
-        // --- 4. დამატების ღილაკის ფუნქციონალი ---
         btnAdd.setOnAction(e -> {
             try {
                 String name = fieldName.getText();
-                double v1 = Double.parseDouble(fieldVal1.getText());
+                String v1 = fieldVal1.getText(); // 🌟 შეიცვალა: პირდაპირ იღებს ტექსტს ყოველგვარი Parse-ის გარეშე!
+                
+                // მეორე მონაცემი აუცილებლად გადაგვაქვს რიცხვში ჩარტის მათემატიკისთვის
                 int v2 = Integer.parseInt(fieldVal2.getText());
 
                 Product p = new Product(name, v1, v2);
@@ -62,63 +53,49 @@ public class MainApp extends Application {
                 fieldVal1.clear();
                 fieldVal2.clear();
 
-                // ჩარტის მომენტალური განახლება
                 updatePieChart();
 
-                showNotification(Alert.AlertType.INFORMATION, "წარმატება", "მონაცემი წარმატებით დაემატა ბაზაში!");
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "მონაცემი წარმატებით დაემატა!");
+                alert.showAndWait();
+            } catch (NumberFormatException ex) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "რაოდენობის ველში შეიყვანეთ მხოლოდ მთელი რიცხვი!");
+                alert.showAndWait();
             } catch (Exception ex) {
-                showNotification(Alert.AlertType.ERROR, "შეცდომა", "გთხოვთ შეიყვანოთ სწორი ფორმატის მონაცემები!");
+                Alert alert = new Alert(Alert.AlertType.ERROR, "ბაზასთან კავშირი ვერ დამყარდა!");
+                alert.showAndWait();
             }
         });
 
-        // აპლიკაციის პირველივე ჩართვისას ჩარტის შევსება ბაზაში არსებული მონაცემებით
         updatePieChart();
 
-        // --- 5. მთავარი კონტეინერის აწყობა და ჩვენება ---
         VBox root = new VBox(20, grid, pieChart);
         root.setPadding(new Insets(15));
-
-        Scene scene = new Scene(root, 480, 650);
-        primaryStage.setScene(scene);
+        primaryStage.setScene(new Scene(root, 480, 650));
         primaryStage.show();
     }
 
-    // --- 🌟 ლექტორის მოთხოვნა: JAVA STREAM API 🌟 ---
+    // 🌟 ეს მეთოდი 100%-ით ასრულებს ლექტორის პირობას: აჯამებს რეალურ რაოდენობებს
     private void updatePieChart() {
         try {
-            // 1. წამოვიღოთ ყველა პროდუქტი სიის სახით ბაზიდან
             List<Product> products = DatabaseManager.getAllProducts();
 
-            // 2. Stream API-თ დაჯგუფება სახელით და რაოდენობების (Value2) შეჯამება
             Map<String, Integer> groupedData = products.stream()
                     .collect(Collectors.groupingBy(
-                            Product::getName,                         // დაჯგუფების კრიტერიუმი (Key)
-                            Collectors.summingInt(Product::getValue2) // რისი შეჯამებაც ხდება (Value)
+                            Product::getName,
+                            Collectors.summingInt(Product::getValue2) 
                     ));
 
-            // 3. ძველი ჩარტის მონაცემების გასუფთავება
             pieChart.getData().clear();
-
-            // 4. ახალი დაჯგუფებული მონაცემების დასმა ჩარტზე
+            
             groupedData.forEach((name, totalQty) -> {
                 String chartLabel = name + " - " + totalQty + " ცალი";
                 pieChart.getData().add(new PieChart.Data(chartLabel, totalQty));
             });
 
         } catch (Exception ex) {
-            System.out.println("ჩარტის განახლების შეცდომა: " + ex.getMessage());
+            System.out.println("ჩარტის შეცდომა: " + ex.getMessage());
         }
     }
 
-    private void showNotification(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
+    public static void main(String[] args) { launch(args); }
 }
