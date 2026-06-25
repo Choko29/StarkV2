@@ -1,11 +1,11 @@
--- 1. ვქმნით მონაცემთა ბაზას სახელით app_db
-CREATE DATABASE IF NOT EXISTS app_db;
 USE app_db;
 
--- 2. ვქმნით ცხრილს სახელით app_table და საჭირო სვეტებით
-CREATE TABLE IF NOT EXISTS app_table (
+-- ვშლით ძველ ცხრილს, რომ ახალი სტრუქტურით გადაიწეროს
+DROP TABLE IF EXISTS app_table;
+
+CREATE TABLE app_table (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    item_name VARCHAR(255) NOT NULL,   -- პროდუქტის სახელი / წიგნის სათაური
-    item_value1 DOUBLE NOT NULL,       -- ფასი / წონა / რეიტინგი
-    item_value2 INT NOT NULL           -- რაოდენობა / გვერდები / წელი
+    item_name VARCHAR(255) NOT NULL,
+    item_value1 VARCHAR(255) NOT NULL, -- 🌟 გახდა VARCHAR (იტევს ფასსაც, კატეგორიასაც და თარიღსაც)
+    item_value2 INT NOT NULL           -- 🌟 დარჩა INT მკაცრად რაოდენობისთვის (ჩარტის ასაგებად)
 );
